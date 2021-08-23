@@ -32,6 +32,16 @@ async def on_ready():
     '\n --GRUPOS PET--\n 1-PETComp UNIOESTE\n2-PETComp UFSM')
 
     channel = discord.utils.get(guild.channels, name='canal_do_bot')
+    role = await guild.create_role(name='cat3ppl')
+    
+    everyone_role = discord.utils.get(guild.roles, name='@everyone')
+
+    await guild.create_category('cat3')
+    category = discord.utils.get(guild.categories, name='cat3')
+    await category.set_permissions(everyone_role,view_channel=False)
+    await category.create_text_channel('simborax')
+    await category.create_voice_channel('bora proseax')
+    await category.set_permissions(role,view_channel=True)
 
     await channel.send(mensagem_atividade)
     
@@ -44,7 +54,8 @@ async def on_message(message):
     if message.channel.id == user.dm_channel.id:
         if message.content in lista_indices_grupos:
             guild = discord.utils.get(client.guilds, name=GUILD)
-            role = discord.utils.get(guild.roles, name='pikachu')
+            role = discord.utils.get(guild.roles, name='cat3ppl')
+
             member = guild.get_member(user.id)
             await member.add_roles(role)
             response = 'Seu grupo é o '+lista_nomes_grupos[int(message.content)-1]
