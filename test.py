@@ -1,8 +1,22 @@
 import numpy as np
 
-lista1 = [1,2,3]
-lista2 = []
-lista1.extend(lista2)
-print(lista1)
+def delete_category():
+    print(0)
+
+def print_queue_users():
+    print(1)
+
+def empty_queue_allocating_groups():
+    print(2)
+
+admin_funcs = {
+    0: delete_category,
+    1: print_queue_users,
+    2: empty_queue_allocating_groups
+}
+
+for i in range(3):
+    admin_funcs[i]()
+
 
 

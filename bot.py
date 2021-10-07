@@ -15,6 +15,8 @@ bot = commands.Bot(command_prefix='!')
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 
+
+
 #TO-DO LIST:
 ##FUNÇÕES ADMINISTRATIVAS
 ##MANDAR CODINOME E LINK PARA DOC
@@ -56,7 +58,39 @@ async def on_ready():
     """    
 
     #await channel.send(mensagem_atividade)
+
+
+@client.event
+async def delete_category():
+    guild = discord.utils.get(client.guilds, name=GUILD)
+    for i in range(30):
+        cat_name = 'trio'+str(i)
+        category = discord.utils.get(guild.categories, name=cat_name)
+        category_channels = category.channels
+        for channel in category_channels:
+            try:
+                await channel.delete()
+            except:
+                print("DEU ERRO NA DELEÇÃO DA CATEGORIA"+str(i))
+                pass
+        await category.delete()
+
+@client.event
+async def print_queue_users():
+    #printar nome do usuario bonitinho e grupo a que ele pertence
+    print("hora do show")
+    pass
+
+@client.event
+async def empty_queue_allocating_groups():
     
+    pass
+
+@client.event
+async def broadcast_message_to_queue_users():
+    
+    pass
+
 @client.event
 async def on_message(message):
     user = message.author
@@ -90,35 +124,23 @@ async def on_message(message):
                     await message.channel.send(response)
 
         elif os.getenv('ADMIN_KEY') in message.content:
-            print("entrou na arvore de comandos")
             command = int(message.content[-1])
-            print(command)
-            if command==0:
-                await delete_category()
-            
-            # apagar categorias e canais
-            # limpar fila formando grupo
-            ### formar dupla
+            admin_funcs = {
+                0: delete_category,
+                1: print_queue_users,
+                2: broadcast_message_to_queue_users,
+                3: empty_queue_allocating_groups
+            }
+            await admin_funcs[command]()
+           
             # printa usuários e grupos na fila
             # broadcast to fila
+            # limpar fila formando grupo
+            ### formar dupla
+            
+            
             # limpar fila eliminando todo mundo
 
     print(user)
-
-@client.event
-async def delete_category():
-    guild = discord.utils.get(client.guilds, name=GUILD)
-    for i in range(30):
-        cat_name = 'trio'+str(i)
-        category = discord.utils.get(guild.categories, name=cat_name)
-        category_channels = category.channels
-        for channel in category_channels:
-            try:
-                await channel.delete()
-            except:
-                print("DEU ERRO NA DELEÇÃO DA CATEGORIA"+str(i))
-                pass
-        await category.delete()
-
 
 client.run(TOKEN)
