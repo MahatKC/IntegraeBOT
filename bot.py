@@ -1,11 +1,10 @@
 from allocation_function import allocation
+from trio_links import trios
 from groups_dict import groups_dict
 import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
-import random
-import time
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -14,14 +13,6 @@ GUILD = os.getenv('DISCORD_GUILD')
 bot = commands.Bot(command_prefix='!')
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
-
-
-
-#TO-DO LIST:
-##FUNÇÕES ADMINISTRATIVAS
-##MANDAR CODINOME E LINK PARA DOC
-##TESTES SÓ A GENTE
-##STRESS TEST
 
 alloc = allocation()
 
@@ -37,14 +28,44 @@ async def on_ready():
     members = '\n - '.join([member.name for member in guild.members])
     print(f'Guild Members:\n - {members}')
 
-    mensagem_atividade = ('Bem-vindo ao Integraê! Envie uma mensagem com o número do seu grupo PET:\n'
-    '\n --GRUPOS PET--\n 1-PETComp UNIOESTE\n2-PETComp UFSM')
+@client.event
+async def trio_formado(guild, trio_id, trio_member_list, trio_channel_list):
+    codinomes = ["Florzinha","Lindinha","Docinho"]
 
-    channel = discord.utils.get(guild.channels, name='canal_do_bot')
-        
+    trio_finished_message = "Trio "+str(trio_id)+" formado com: "
+    for membro in trio_member_list:
+        trio_finished_message += membro.name+ ", "
+    print(trio_finished_message)
+
+    role = discord.utils.get(guild.roles, name='trio'+str(trio_id-1))
+
+    i=0
+    response = 'Seu trio foi definido. Entre no canal de voz da sua categoria para iniciar a atividade.' 
+    for trio_member, trio_member_channel in zip(trio_member_list, trio_channel_list):
+        await trio_member.add_roles(role)
+        await trio_member_channel.send(response)
+        response2 = 'Seu codinome é '+codinomes[i]+'. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id-1][i]
+        await trio_member_channel.send(response2)
+        i+=1
+
+@client.event
+async def membro_alocado(guild, trio_id, membro, channel):
+    trio_finished_message = "Trio "+str(trio_id)+" formado com: "+membro.name
+    print(trio_finished_message)
+
+    role = discord.utils.get(guild.roles, name='trio'+str(trio_id-1))
+
+    response = 'Seu trio foi definido. Entre no canal de voz da sua categoria para iniciar a atividade.' 
+    await membro.add_roles(role)
+    await channel.send(response)
+    response2 = 'Seu codinome é Florzinha. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id-1][0]
+    await channel.send(response2)
+
+@client.event
+async def create_roles_dos_trios():
+    guild = discord.utils.get(client.guilds, name=GUILD)
     everyone_role = discord.utils.get(guild.roles, name='@everyone')
 
-    """
     #create roles, categories and channels
     for i in range(30):
         trio_number = 'trio'+str(i)
@@ -55,10 +76,22 @@ async def on_ready():
         await category.create_text_channel('texto_'+trio_number)
         await category.create_voice_channel('voz_'+trio_number)
         await category.set_permissions(role,view_channel=True)
-    """    
+    
+    print("Categorias criadas!")
 
-    #await channel.send(mensagem_atividade)
+@client.event
+async def mensagem_inicial_bot():
+    guild = discord.utils.get(client.guilds, name=GUILD)
+    
+    mensagem_atividade = ('Bem-vindo ao Integraê! Me envie uma mensagem privada com o número do seu grupo PET:\n'
+    '\n --GRUPOS PET--\n')
 
+    for group_id,group_name in zip(groups_dict.lista_indices_grupos, groups_dict.lista_nomes_grupos):
+        mensagem_atividade += group_id+"-"+group_name+"\n"
+
+    channel = discord.utils.get(guild.channels, name='canal_do_bot')
+        
+    await channel.send(mensagem_atividade)
 
 @client.event
 async def delete_category():
@@ -74,21 +107,48 @@ async def delete_category():
                 print("DEU ERRO NA DELEÇÃO DA CATEGORIA"+str(i))
                 pass
         await category.delete()
+        print("Categoria "+str(i)+" excluída.")
 
 @client.event
 async def print_queue_users():
-    #printar nome do usuario bonitinho e grupo a que ele pertence
-    print("hora do show")
+    print("-"*10)
+    print(f"A fila está com {len(alloc.user_id_queue)} pessoas")
+    for person, group in zip(alloc.user_id_queue, alloc.group_id_queue):
+        print(f"Grupo: {group}, User: {person.name}")
+    print("-"*10)
     pass
 
 @client.event
 async def empty_queue_allocating_groups():
-    
+    guild = discord.utils.get(client.guilds, name=GUILD)
+    trios_id, trios_member_list, trios_channel_list = alloc.force_trio_creation()
+
+    for trio_id, trio_member_list, trio_channel_list in zip(trios_id, trios_member_list, trios_channel_list):
+        if type(trio_member_list)!=list:
+            print("IGOR, VÁ PARA A CATEGORIA TRIO"+str(trio_id)+" !!!")
+            await membro_alocado(guild, trio_id, trio_member_list, trio_channel_list)
+        else:
+            await trio_formado(guild, trio_id, trio_member_list, trio_channel_list)
+
     pass
 
 @client.event
-async def broadcast_message_to_queue_users():
-    
+async def broadcast_message_to_queue_users(broadcast_message):
+    #SINTAXE DA MENSAGEM:
+    #[ADMINKEY][MENSAGEM]2
+    for person_channel in alloc.user_channel_queue:
+        await person_channel.send(broadcast_message)
+
+    pass
+
+@client.event
+async def clean_queues():
+    alloc.group_id_queue = []
+    alloc.user_id_queue = []
+    alloc.user_channel_queue = []
+    alloc.already_assigned = []
+    print("Filas limpas!")
+
     pass
 
 @client.event
@@ -111,13 +171,7 @@ async def on_message(message):
                 trio_finished, trio_id, trio_member_list, trio_channel_list = alloc.set_trio(int(message.content), member, message.channel)
                 
                 if trio_finished:
-                    role = discord.utils.get(guild.roles, name='trio'+str(trio_id-1)) 
-                    for trio_member in trio_member_list:
-                        await trio_member.add_roles(role)
-
-                    response = 'Seu trio foi definido. Entre no canal de voz da sua categoria para iniciar a atividade.'
-                    for trio_channel in trio_channel_list:
-                        await trio_channel.send(response)
+                    await trio_formado(guild, trio_id, trio_member_list, trio_channel_list)
                     
                 else:
                     response = 'Aguarde até que mais participantes entrem. Se em até 10 minutos você não for alocado a um trio, entre em contato com a organização do evento.'
@@ -129,17 +183,16 @@ async def on_message(message):
                 0: delete_category,
                 1: print_queue_users,
                 2: broadcast_message_to_queue_users,
-                3: empty_queue_allocating_groups
+                3: empty_queue_allocating_groups,
+                4: mensagem_inicial_bot,
+                5: create_roles_dos_trios,
+                7: clean_queues
             }
-            await admin_funcs[command]()
-           
-            # printa usuários e grupos na fila
-            # broadcast to fila
-            # limpar fila formando grupo
-            ### formar dupla
-            
-            
-            # limpar fila eliminando todo mundo
+            if command==2:
+                broadcast_message = message.content.replace(os.getenv('ADMIN_KEY'),"").replace(str(command),"")
+                await admin_funcs[command](broadcast_message)
+            else:
+                await admin_funcs[command]()
 
     print(user)
 

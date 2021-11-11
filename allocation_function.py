@@ -83,20 +83,100 @@ class allocation:
         trio_member_list = []
         trio_channel_list = []
 
-        for index in range(3):
-            self.group_id_queue.pop(index)
-            trio_member_list.append(self.user_id_queue.pop(index))
-            trio_channel_list.append(self.user_channel_queue.pop(index))
+        for num in range(3):
+            self.group_id_queue.pop(0)
+            trio_member_list.append(self.user_id_queue.pop(0))
+            trio_channel_list.append(self.user_channel_queue.pop(0))
 
         self.trios_created_counter += 1
 
         return self.trios_created_counter, trio_member_list, trio_channel_list
     
+    def force_trio_creation(self):
+        trios_id = []
+        trios_member_list = []
+        trios_channel_list = []
+
+        while(len(self.group_id_queue)>0):
+            if len(self.group_id_queue) == 4:
+                id, member_list, channel_list = self.forma_primeira_de_duas_duplas()
+                trios_id.append(id)
+                trios_member_list.append(member_list)
+                trios_channel_list.append(channel_list)
+                
+                id, member_list, channel_list =  self.forma_uma_dupla()
+
+            elif len(self.group_id_queue) == 3:
+                id, member_list, channel_list =  self.forma_um_trio()
+
+            elif len(self.group_id_queue) == 2:
+                id, member_list, channel_list =  self.forma_uma_dupla()
+
+            elif len(self.group_id_queue) == 1:
+                id, member_list, channel_list = self.forma_dupla_com_um_de_nos()
+
+            else:
+                id, member_list, channel_list = self.forma_um_trio()
+            
+            trios_id.append(id)
+            trios_member_list.append(member_list)
+            trios_channel_list.append(channel_list)
+        
+        return trios_id, trios_member_list, trios_channel_list
+
+    def forma_primeira_de_duas_duplas(self):
+        num_unique_groups_in_queue = np.shape(np.unique(self.group_id_queue))[0]
+          
+        if num_unique_groups_in_queue == 2:
+            dupla1_member_list = []
+            dupla1_channel_list = []
+
+            for group_number in np.unique(self.group_id_queue):
+                index = self.group_id_queue.index(group_number)
+                self.group_id_queue.pop(index)
+                dupla1_member_list.append(self.user_id_queue.pop(index))
+                dupla1_channel_list.append(self.user_channel_queue.pop(index))
+        else:
+            _, dupla1_member_list, dupla1_channel_list  = self.forma_uma_dupla()
+
+        self.trios_created_counter += 1 
+        
+        return self.trios_created_counter, dupla1_member_list, dupla1_channel_list
+
+    def forma_uma_dupla(self):
+        dupla_member_list = []
+        dupla_channel_list = []
+        self.group_id_queue.pop(0)
+        self.group_id_queue.pop(0)
+        dupla_member_list.append(self.user_id_queue.pop(0))
+        dupla_channel_list.append(self.user_channel_queue.pop(0))
+        dupla_member_list.append(self.user_id_queue.pop(0))
+        dupla_channel_list.append(self.user_channel_queue.pop(0)) 
+
+        self.trios_created_counter += 1 
+        
+        return self.trios_created_counter, dupla_member_list, dupla_channel_list
+
+    def forma_dupla_com_um_de_nos(self):
+        self.group_id_queue.pop(0)
+        self.trios_created_counter += 1 
+       
+        return self.trios_created_counter, self.user_id_queue.pop(0), self.user_channel_queue.pop(0)
+
+    def forma_um_trio(self):
+        num_unique_groups_in_queue = np.shape(np.unique(self.group_id_queue))[0]
+        if num_unique_groups_in_queue == 2:
+            _, trio_member_list, trio_channel_list = self.create_trio_two_one()
+        else:
+           _, trio_member_list, trio_channel_list = self.create_trio_three_zero()
+
+        self.trios_created_counter += 1 
+        
+        return self.trios_created_counter, trio_member_list, trio_channel_list
+
     def is_user_in_queue(self, user_id):
-        #return False
         return (user_id in self.user_id_queue)
     
     def is_user_already_assigned(self, user_id):
-        return False
-        #return (user_id in self.already_assigned)
+        return (user_id in self.already_assigned)
             

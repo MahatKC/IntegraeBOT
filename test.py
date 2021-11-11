@@ -15,8 +15,9 @@ admin_funcs = {
     2: empty_queue_allocating_groups
 }
 
-for i in range(3):
-    admin_funcs[i]()
+stringzinha = "ronaldonazariodelima"
+
+print(stringzinha.replace("ronaldo","").replace("lima",""))
 
 
 
