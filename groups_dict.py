@@ -1,5 +1,3 @@
 class groups_dict:
-    lista_indices_grupos = ['1','2','3','4','5','6','7','8','9','10','11','12']
-    lista_nomes_grupos = ['UNIOESTE','UFAL','UFSM','UFPel','USP','UERN','UFRN','DivulgaPET','UFRGS','UEM','UFPR','UFSCar']
-    numero_inscritos = 100
-    clean_queue_threshold = int(0.5*numero_inscritos)
+    lista_indices_grupos = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17']
+    lista_nomes_grupos = ['PET CC/UERN','PET BCC/UFSCar','PET CC/UFRN','PETComp/UNIOESTE','COMPET/CEFET-MG','PETComp/USP','PET-SI/USP','PETComp/USPSC','PET Computação/UFPR','PET-SI/UFRRJ','PET Computação/UFPel','PET-CC/ UFSM','PETInformática/UEM','PET-SI/UFSM','GET Engenharia Computacional/UFJF','PET Computação/UFRGS','PET Ciência e Tecnologia/UFAL']

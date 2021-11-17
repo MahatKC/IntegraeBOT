@@ -3,12 +3,12 @@ import numpy as np
 class allocation:
     def __init__(self) -> None:
         self.max_queue_two_one = 8
-        self.max_queue_tree_zero = 12
+        self.max_queue_tree_zero = 10
         self.group_id_queue = []
         self.user_id_queue = []
         self.user_channel_queue = []
         self.already_assigned = []
-        self.trios_created_counter = 0
+        self.trios_created_counter = -1
         pass
 
     def set_trio(self, group_id, user_id, user_channel):
@@ -136,11 +136,11 @@ class allocation:
                 self.group_id_queue.pop(index)
                 dupla1_member_list.append(self.user_id_queue.pop(index))
                 dupla1_channel_list.append(self.user_channel_queue.pop(index))
+            
+            self.trios_created_counter += 1 
         else:
             _, dupla1_member_list, dupla1_channel_list  = self.forma_uma_dupla()
 
-        self.trios_created_counter += 1 
-        
         return self.trios_created_counter, dupla1_member_list, dupla1_channel_list
 
     def forma_uma_dupla(self):
@@ -175,8 +175,10 @@ class allocation:
         return self.trios_created_counter, trio_member_list, trio_channel_list
 
     def is_user_in_queue(self, user_id):
-        return (user_id in self.user_id_queue)
+        return False
+        #return (user_id in self.user_id_queue)
     
     def is_user_already_assigned(self, user_id):
-        return (user_id in self.already_assigned)
+        return False
+        #return (user_id in self.already_assigned)
             

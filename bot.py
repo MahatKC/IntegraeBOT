@@ -37,14 +37,14 @@ async def trio_formado(guild, trio_id, trio_member_list, trio_channel_list):
         trio_finished_message += membro.name+ ", "
     print(trio_finished_message)
 
-    role = discord.utils.get(guild.roles, name='trio'+str(trio_id-1))
+    role = discord.utils.get(guild.roles, name='trio'+str(trio_id))
 
     i=0
     response = 'Seu trio foi definido. Entre no canal de voz da sua categoria para iniciar a atividade.' 
     for trio_member, trio_member_channel in zip(trio_member_list, trio_channel_list):
         await trio_member.add_roles(role)
         await trio_member_channel.send(response)
-        response2 = 'Seu codinome é '+codinomes[i]+'. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id-1][i]
+        response2 = 'Seu codinome é '+codinomes[i]+'. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id][i]
         await trio_member_channel.send(response2)
         i+=1
 
@@ -53,12 +53,12 @@ async def membro_alocado(guild, trio_id, membro, channel):
     trio_finished_message = "Trio "+str(trio_id)+" formado com: "+membro.name
     print(trio_finished_message)
 
-    role = discord.utils.get(guild.roles, name='trio'+str(trio_id-1))
+    role = discord.utils.get(guild.roles, name='trio'+str(trio_id))
 
     response = 'Seu trio foi definido. Entre no canal de voz da sua categoria para iniciar a atividade.' 
     await membro.add_roles(role)
     await channel.send(response)
-    response2 = 'Seu codinome é Florzinha. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id-1][0]
+    response2 = 'Seu codinome é Florzinha. Acesse o arquivo no seguinte link para participar da atividade: '+trios[trio_id][0]
     await channel.send(response2)
 
 @client.event
@@ -83,11 +83,11 @@ async def create_roles_dos_trios():
 async def mensagem_inicial_bot():
     guild = discord.utils.get(client.guilds, name=GUILD)
     
-    mensagem_atividade = ('Bem-vindo ao Integraê! Me envie uma mensagem privada com o número do seu grupo PET:\n'
-    '\n --GRUPOS PET--\n')
+    mensagem_atividade = ('Bem-vindo ao Integraê! Me envie uma **MENSAGEM PRIVADA** com o número do seu grupo PET:\n'
+    '\n**-----GRUPOS PET-----**\n')
 
     for group_id,group_name in zip(groups_dict.lista_indices_grupos, groups_dict.lista_nomes_grupos):
-        mensagem_atividade += group_id+"-"+group_name+"\n"
+        mensagem_atividade += group_id+" - "+group_name+"\n"
 
     channel = discord.utils.get(guild.channels, name='canal_do_bot')
         
